@@ -22,10 +22,13 @@ input,select,button{font:inherit}input,select{padding:10px 12px;border:1px solid
 #search{flex:1;min-width:250px}.btn{border:0;border-radius:8px;padding:10px 15px;cursor:pointer;font-weight:600}
 .primary{background:var(--primary);color:#fff}.secondary{background:#e9f0f6;color:#17324d}.success{background:var(--success);color:#fff}
 .table-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:auto;box-shadow:0 3px 12px #17324d0b}
-table{border-collapse:collapse;width:100%;min-width:1400px}th,td{padding:8px 6px;border-bottom:1px solid #edf1f5;text-align:left;font-size:13px;vertical-align:middle}
+table{border-collapse:collapse;width:100%;min-width:1480px}th,td{padding:8px 6px;border-bottom:1px solid #edf1f5;text-align:left;font-size:13px;vertical-align:middle}
 th{background:#edf4fa;color:#17324d;position:sticky;top:0;z-index:1}tr:hover td{background:#f8fbfd}
 .badge{padding:4px 8px;border-radius:20px;background:#e7f6ee;color:#087a45;font-size:11px;font-weight:700}
 tfoot td{font-weight:700;background:#f6f9fc}.empty{text-align:center;padding:40px;color:var(--muted)}
+.icon-btn{border:0;border-radius:6px;padding:6px 10px;cursor:pointer;font-weight:600;font-size:12px;white-space:nowrap}
+.icon-btn.delete{background:#fdeceb;color:#b3261e}
+.icon-btn.delete:hover{filter:brightness(0.95)}
 .modal{display:none;position:fixed;inset:0;background:#0007;align-items:center;justify-content:center;padding:20px;z-index:5}
 .modal.open{display:flex}.modal-box{background:#fff;border-radius:14px;width:min(700px,100%);padding:22px;max-height:90vh;overflow:auto}
 .modal-box h2{margin-top:0}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form-grid label{font-size:12px;font-weight:600;color:var(--muted)}.form-grid input,.form-grid select{width:100%;margin-top:5px}
@@ -80,10 +83,10 @@ td.col-transfer .cell-input{min-width:120px}
       <thead><tr>
         <th>Asset Tag</th><th>Property No.</th><th>Item Description</th>
         <th>Date Purchased</th><th>Date Issued</th><th>Qty/Unit</th>
-        <th>Unit Cost</th><th>Useful Life</th><th>Serial Number</th><th>Status</th><th>Transferred To</th>
+        <th>Unit Cost</th><th>Useful Life</th><th>Serial Number</th><th>Status</th><th>Transferred To</th><th>Actions</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
-      <tfoot><tr><td colspan="6">Displayed Inventory</td><td id="footValue">₱0.00</td><td colspan="4"></td></tr></tfoot>
+      <tfoot><tr><td colspan="6">Displayed Inventory</td><td id="footValue">₱0.00</td><td colspan="5"></td></tr></tfoot>
     </table>
   </div>
   <p style="color:#66788a;font-size:12px;margin-top:12px">
@@ -161,10 +164,11 @@ function render(){
    <td><select class="status-select ${statusClass(status)}" onchange="updateField(${idx},'status',this.value)">
      ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${status===s?'selected':''}>${s}</option>`).join('')}
    </select></td>
-   <td class="col-transfer"><input class="cell-input" value="${esc(x.transferredTo||'')}" placeholder="Transferred to..." onchange="updateField(${idx},'transferredTo',this.value)"></td>`;
+   <td class="col-transfer"><input class="cell-input" value="${esc(x.transferredTo||'')}" placeholder="Transferred to..." onchange="updateField(${idx},'transferredTo',this.value)"></td>
+   <td><button class="icon-btn delete" onclick="deleteItem(${idx})">Delete</button></td>`;
    body.appendChild(tr);
  });
- if(!filtered.length) body.innerHTML='<tr><td colspan="11" class="empty">No matching inventory items.</td></tr>';
+ if(!filtered.length) body.innerHTML='<tr><td colspan="12" class="empty">No matching inventory items.</td></tr>';
  document.getElementById('count').textContent=filtered.length;
  document.getElementById('value').textContent=money(total);
  document.getElementById('equipment').textContent=filtered.filter(x=>category(x.item)!=='Furniture').length;
@@ -173,6 +177,12 @@ function render(){
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function updateField(idx,key,value){
  inventory[idx][key]=value;
+ localStorage.setItem('inventoryData',JSON.stringify(inventory));
+ render();
+}
+function deleteItem(idx){
+ if(!confirm('Delete this inventory item? This cannot be undone.')) return;
+ inventory.splice(idx,1);
  localStorage.setItem('inventoryData',JSON.stringify(inventory));
  render();
 }
